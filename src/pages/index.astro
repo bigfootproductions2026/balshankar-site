@@ -1,0 +1,47 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const allTools = await getCollection('tools', ({ data }) => !data.draft);
+const allNotes = await getCollection('notes', ({ data }) => !data.draft);
+
+const tools = allTools.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 4);
+const notes = allNotes.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 4);
+
+function fmt(date: Date) {
+  return date.toISOString().slice(0, 10).replace(/-/g, '.');
+}
+---
+<BaseLayout title="Balshankar">
+  <p class="intro">i build things sometimes and write things sometimes.</p>
+
+  <section>
+    <p class="section-heading">tools</p>
+    <ul class="entry-list">
+      {tools.map((tool) => (
+        <li class="entry-row">
+          <span class="entry-date">{fmt(tool.data.date)}</span>
+          <span class="entry-title"><a href={`/tools/${tool.id}`}>{tool.data.title}</a></span>
+        </li>
+      ))}
+    </ul>
+    {tools.length === 0 && <p class="post-meta">nothing here yet</p>}
+    <p class="archive-link"><a href="/tools">archive →</a></p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <p class="section-heading">margins</p>
+    <ul class="entry-list">
+      {notes.map((note) => (
+        <li class="entry-row">
+          <span class="entry-date">{fmt(note.data.date)}</span>
+          <span class="entry-title"><a href={`/notes/${note.id}`}>{note.data.title}</a></span>
+        </li>
+      ))}
+    </ul>
+    {notes.length === 0 && <p class="post-meta">nothing here yet</p>}
+    <p class="archive-link"><a href="/notes">archive →</a></p>
+  </section>
+</BaseLayout>

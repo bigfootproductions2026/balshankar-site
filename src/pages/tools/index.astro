@@ -1,0 +1,54 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const allTools = (await getCollection('tools', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const allTags = [...new Set(allTools.flatMap((t) => t.data.tags))].sort();
+
+function fmt(date: Date) {
+  return date.toISOString().slice(0, 10).replace(/-/g, '.');
+}
+---
+<BaseLayout title="Tools — Balshankar">
+  <a href="/" class="back-link">← home</a>
+  <p class="section-heading">tools</p>
+
+  {allTags.length > 0 && (
+    <div id="tag-filters" style="margin-bottom: 1.25rem;">
+      <button class="tag-pill active" data-tag="all">all</button>
+      {allTags.map((tag) => (
+        <button class="tag-pill" data-tag={tag}>{tag}</button>
+      ))}
+    </div>
+  )}
+
+  <ul class="entry-list" id="tool-list">
+    {allTools.map((tool) => (
+      <li class="entry-row" data-tags={tool.data.tags.join(',')}>
+        <span class="entry-date">{fmt(tool.data.date)}</span>
+        <span class="entry-title"><a href={`/tools/${tool.id}`}>{tool.data.title}</a></span>
+      </li>
+    ))}
+  </ul>
+  {allTools.length === 0 && <p class="post-meta">nothing here yet</p>}
+</BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.tag-pill');
+  const rows = document.querySelectorAll<HTMLLIElement>('#tool-list .entry-row');
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      const selected = btn.dataset.tag;
+
+      rows.forEach((row) => {
+        const tags = (row.dataset.tags || '').split(',');
+        row.style.display = selected === 'all' || tags.includes(selected!) ? '' : 'none';
+      });
+    });
+  });
+</script>

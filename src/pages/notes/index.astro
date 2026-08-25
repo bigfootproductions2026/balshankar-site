@@ -1,0 +1,24 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const allNotes = (await getCollection('notes', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+function fmt(date: Date) {
+  return date.toISOString().slice(0, 10).replace(/-/g, '.');
+}
+---
+<BaseLayout title="Margins — Balshankar">
+  <a href="/" class="back-link">← home</a>
+  <p class="section-heading">margins</p>
+  <ul class="entry-list">
+    {allNotes.map((note) => (
+      <li class="entry-row">
+        <span class="entry-date">{fmt(note.data.date)}</span>
+        <span class="entry-title"><a href={`/notes/${note.id}`}>{note.data.title}</a></span>
+      </li>
+    ))}
+  </ul>
+  {allNotes.length === 0 && <p class="post-meta">nothing here yet</p>}
+</BaseLayout>
